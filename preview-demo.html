@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inbox · Decision Workspace</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #f8fafc;
+      color: #1e293b;
+      overflow-x: hidden;
+    }
+
+    /* Top Navigation */
+    header.app-header {
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      background: #ffffff;
+      border-bottom: 1px solid #e2e8f0;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+    }
+    .app-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      user-select: none;
+    }
+    .logo-badge {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 16px;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+    }
+    .app-search {
+      flex: 1;
+      max-width: 680px;
+      margin: 0 28px;
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      border-radius: 20px;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      color: #64748b;
+      font-size: 13px;
+    }
+
+    /* Layout */
+    .app-container {
+      display: flex;
+      height: calc(100vh - 64px);
+    }
+    .app-sidebar {
+      width: 240px;
+      padding: 16px 12px;
+      background: #ffffff;
+      border-right: 1px solid #e2e8f0;
+    }
+    .compose-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 20px;
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      color: #ffffff;
+      font-weight: 600;
+      font-size: 14px;
+      border-radius: 12px;
+      cursor: pointer;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+      transition: transform 0.15s ease;
+    }
+    .compose-btn:hover {
+      transform: translateY(-1px);
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #475569;
+      cursor: pointer;
+      margin-bottom: 3px;
+      transition: all 0.15s ease;
+    }
+    .nav-item:hover {
+      background: #f1f5f9;
+      color: #0f172a;
+    }
+    .nav-item.active {
+      background: #e0e7ff;
+      color: #4338ca;
+      font-weight: 700;
+    }
+
+    /* Main Content Area */
+    .app-main {
+      flex: 1;
+      background: #ffffff;
+      overflow-y: auto;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Mail List Toolbar */
+    .toolbar {
+      height: 48px;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      border-bottom: 1px solid #e2e8f0;
+      color: #64748b;
+      font-size: 13px;
+      gap: 16px;
+      background: #ffffff;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    /* Table styles matching authentic client DOM */
+    table.F {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+    tr.zA {
+      border-bottom: 1px solid #f1f5f9;
+      cursor: pointer;
+      height: 44px;
+      font-size: 13.5px;
+      transition: background 0.15s ease, box-shadow 0.15s ease;
+      user-select: none;
+    }
+    tr.zA:hover {
+      background: #f1f5f9 !important;
+      box-shadow: inset 2px 0 0 #4f46e5;
+    }
+    /* UNREAD (未读/未点击) */
+    tr.zA.zE {
+      background: #ffffff;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    tr.zA.zE td.col-sender .yP {
+      font-weight: 700;
+      color: #0f172a;
+    }
+    tr.zA.zE td.col-subject .bog {
+      font-weight: 700;
+      color: #0f172a;
+    }
+    tr.zA.zE td.col-subject .mail-snippet {
+      font-weight: 400;
+      color: #64748b;
+    }
+    tr.zA.zE td.col-date {
+      color: #1e293b;
+      font-weight: 600;
+    }
+
+    /* READ (已读/已点击) */
+    tr.zA.yO {
+      background: #f8fafc;
+      font-weight: 400;
+      color: #64748b;
+    }
+    tr.zA.yO td.col-sender .yP {
+      font-weight: 400;
+      color: #475569;
+    }
+    tr.zA.yO td.col-subject .bog {
+      font-weight: 400;
+      color: #64748b;
+    }
+    tr.zA.yO td.col-subject .mail-snippet {
+      font-weight: 400;
+      color: #94a3b8;
+    }
+    tr.zA.yO td.col-date {
+      color: #94a3b8;
+      font-weight: 400;
+    }
+
+    /* Unread blue dot indicator */
+    .unread-dot {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #2563eb;
+      margin-right: 7px;
+      vertical-align: middle;
+      box-shadow: 0 0 6px rgba(37, 99, 235, 0.45);
+      flex-shrink: 0;
+    }
+    tr.zA.yO .unread-dot {
+      display: none !important;
+    }
+    tr.zA.zE .unread-dot {
+      display: inline-block;
+    }
+
+    td {
+      padding: 0 10px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    td.col-check {
+      width: 60px;
+      text-align: center;
+    }
+    td.col-sender {
+      width: 200px;
+    }
+    td.col-subject {
+      width: auto;
+    }
+    td.col-date {
+      width: 90px;
+      text-align: right;
+      font-size: 12px;
+      padding-right: 20px;
+    }
+    .star-icon {
+      color: #cbd5e1;
+      margin-left: 8px;
+      font-size: 15px;
+      cursor: pointer;
+      display: inline-block;
+      transition: color 0.15s ease, transform 0.15s ease;
+      user-select: none;
+    }
+    .star-icon:hover {
+      transform: scale(1.15);
+      color: #94a3b8;
+    }
+    .star-icon.starred {
+      color: #f59e0b !important;
+    }
+    .mail-snippet {
+      margin-left: 8px;
+    }
+
+    /* Toast Notification */
+    #app-toast {
+      position: fixed;
+      bottom: 24px;
+      left: 24px;
+      background: #0f172a;
+      color: #ffffff;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+      display: none;
+      z-index: 999999;
+      animation: toastSlideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes toastSlideUp {
+      from { transform: translateY(12px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    /* Email Detail View */
+    #view-mail-detail {
+      display: none;
+      padding: 24px 32px;
+      max-width: 960px;
+      margin: 0 auto;
+      width: 100%;
+      animation: detailFadeIn 0.25s ease;
+    }
+    @keyframes detailFadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .detail-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .btn-back-inbox {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #f1f5f9;
+      color: #334155;
+      border: 1px solid #cbd5e1;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .btn-back-inbox:hover {
+      background: #e2e8f0;
+    }
+
+    .email-subject-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: #0f172a;
+      line-height: 1.4;
+      margin-bottom: 14px;
+    }
+
+    .email-meta-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px dashed #e2e8f0;
+    }
+    .sender-box {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .sender-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #6366f1;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 16px;
+    }
+    .sender-info-text .name {
+      font-size: 14px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .sender-info-text .email {
+      font-size: 12px;
+      color: #64748b;
+    }
+
+    .email-body-content {
+      font-size: 14.5px;
+      line-height: 1.7;
+      color: #334155;
+      margin-bottom: 32px;
+    }
+
+    /* LLM Draft Box (When Jev triggers LLM) */
+    .llm-agent-card {
+      background: linear-gradient(135deg, rgba(236, 72, 153, 0.05), rgba(168, 85, 247, 0.08));
+      border: 1px solid rgba(236, 72, 153, 0.35);
+      border-radius: 12px;
+      padding: 18px 20px;
+      margin-top: 24px;
+      box-shadow: 0 4px 20px rgba(236, 72, 153, 0.08);
+      position: relative;
+    }
+    .llm-agent-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .llm-agent-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #db2777;
+    }
+    .llm-draft-body {
+      background: #ffffff;
+      border: 1px solid #fbcfe8;
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-size: 14px;
+      line-height: 1.6;
+      color: #1e293b;
+      margin-bottom: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+    .llm-actions {
+      display: flex;
+      gap: 10px;
+    }
+    .btn-send-draft {
+      background: linear-gradient(135deg, #ec4899, #d946ef);
+      color: #ffffff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(236,72,153,0.3);
+    }
+    .btn-edit-draft {
+      background: #ffffff;
+      color: #64748b;
+      border: 1px solid #cbd5e1;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    /* Passive Jev Info Box (When LLM is avoided) */
+    .jev-passive-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-top: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+      color: #64748b;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top App Navigation Bar -->
+  <header class="app-header">
+    <div class="app-logo">
+      <div class="logo-badge">J</div>
+      <div>
+        <span style="font-size: 18px; color: #0f172a; font-weight: 700; letter-spacing: -0.4px;">Inbox</span>
+        <span style="font-size: 11px; background: rgba(99,102,241,0.1); color: #6366f1; border-radius: 4px; padding: 2px 6px; margin-left: 6px; font-weight: 600;">Decision Layer</span>
+      </div>
+    </div>
+    <div class="app-search">
+      <span style="margin-right:8px; opacity:0.7;">🔍</span>
+      <input type="text" id="mail-search-input" placeholder="在收件箱中搜索发件人、主题，或通过 Jev 决策分流..." oninput="handleSearch(this.value)" style="background:transparent; border:none; width:100%; outline:none; font-size:13px; color:#1e293b;">
+    </div>
+    <div style="display: flex; align-items: center; gap: 14px;">
+      <span style="font-size: 13px; color: #64748b;">alex.founder@workspace.internal</span>
+      <div style="width: 32px; height: 32px; border-radius: 50%; background: #6366f1; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px;">A</div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <div class="app-container">
+    <!-- Sidebar -->
+    <div class="app-sidebar">
+      <div class="compose-btn" onclick="showToast('正在打开新邮件撰写框...')">
+        <span>✏️</span> 写邮件
+      </div>
+      <div class="nav-item active" id="nav-all" onclick="filterMails('all')">
+        <span>📥 收件箱</span>
+        <span id="sidebar-inbox-count" style="font-size: 11px; font-weight: 700; background: #e0e7ff; color: #4338ca; padding: 2px 7px; border-radius: 10px;">9</span>
+      </div>
+      <div class="nav-item" id="nav-starred" onclick="filterMails('starred')">
+        <span>⭐ 重要标记</span>
+        <span id="sidebar-starred-count" style="font-size: 11px; font-weight: 600; color: #f59e0b; margin-left:auto;">4</span>
+      </div>
+      <div class="nav-item" id="nav-unread" onclick="filterMails('unread')">
+        <span>✉️ 未读邮件</span>
+        <span id="sidebar-unread-count" style="font-size: 11px; font-weight: 600; color: #6366f1; margin-left:auto;">9</span>
+      </div>
+      <div class="nav-item" id="nav-need-reply" onclick="filterMails('need_reply')">
+        <span>🤖 需要回复</span>
+        <span id="sidebar-reply-count" style="font-size: 11px; background:#ec4899; color:#fff; border-radius:10px; padding:1px 6px; font-weight:700; margin-left:auto;">2</span>
+      </div>
+      <div class="nav-item" id="nav-sent" onclick="filterMails('sent')"><span>📤 已发送</span></div>
+      <div class="nav-item" id="nav-archived" onclick="filterMails('archived')">
+        <span>📁 归档邮件</span>
+        <span id="sidebar-archived-count" style="font-size: 11px; font-weight: 600; color: #94a3b8; margin-left:auto;">0</span>
+      </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="app-main" role="main">
+
+      <!-- VIEW 1: Mail List Table View -->
+      <div id="view-mail-list">
+        <div class="toolbar">
+          <input type="checkbox" id="toolbar-select-all" style="cursor: pointer;" onclick="toggleSelectAll(this.checked)" title="全选">
+          <span style="cursor: pointer;" onclick="markAllVisibleAsRead()" title="全部标为已读">✓ 全部标为已读</span>
+          <span style="cursor: pointer;" onclick="refreshMailList()">🔄 刷新</span>
+          <div style="margin-left: auto; color: #64748b; font-size: 12px;" id="toolbar-count-info">1 - 17 / 17</div>
+        </div>
+
+        <table class="F cf zt">
+          <tbody id="mail-tbody">
+            <!-- Rendered by JavaScript -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- VIEW 2: Mail Detail View -->
+      <div id="view-mail-detail">
+        <div class="detail-toolbar">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <button class="btn-back-inbox" onclick="backToMailList()">
+              ← 返回收件箱
+            </button>
+            <span style="height:16px; width:1px; background:#e2e8f0; margin:0 4px;"></span>
+            <button class="btn-back-inbox" id="btn-detail-archive" onclick="archiveCurrentEmail()" title="归档邮件">
+              📁 归档
+            </button>
+            <button class="btn-back-inbox" id="btn-detail-unread" onclick="markCurrentEmailUnread()" title="标记为未读">
+              ✉️ 标为未读
+            </button>
+            <button class="btn-back-inbox" id="btn-detail-star" onclick="toggleCurrentEmailStar()" title="标星">
+              ⭐ 标星
+            </button>
+            <button class="btn-back-inbox" id="btn-detail-delete" onclick="deleteCurrentEmail()" title="移至废纸篓">
+              🗑️ 删除
+            </button>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <button class="btn-back-inbox" onclick="prevEmailDetail()" title="上一封">◀ 上一封</button>
+            <button class="btn-back-inbox" onclick="nextEmailDetail()" title="下一封">下一封 ▶</button>
+          </div>
+        </div>
+
+        <div id="detail-header-area">
+          <!-- Populated dynamically -->
+        </div>
+
+        <div id="detail-body-area" class="email-body-content">
+          <!-- Populated dynamically -->
+        </div>
+
+        <div id="detail-jev-decision-box">
+          <!-- Populated dynamically: LLM Reply box or Passive Avoidance box -->
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Load Decoupled Demo Benchmarks for Video Recording -->
+  <script src="./demo-data.js"></script>
+
+  <!-- Load Jev Decision Layer Userscript -->
+  <script src="./jev-inbox-decision.user.js"></script>
+
+  <!-- Complete Database of 18 Demo Emails with Rich Bodies & Pre-generated LLM Drafts -->
+  <script>
+    const FULL_EMAILS_DB = [
+      {
+        id: 'demo-1',
+        sender: 'Nike Store <members@nike-email.com>',
+        subject: '独家特惠：精选运动鞋与潮流服饰低至 5 折，限时抢购',
+        snippet: '探索会员专属折扣，Air Max 与 Jordan 系列参与限时促销，立即选购您的专属装备。限时 48 小时...',
+        unread: false,
+        starred: false,
+        date: '09:42',
+        bodyHtml: `
+          <p>尊敬的 Nike 会员：</p>
+          <p>您的专属换季特惠已激活！精选跑步鞋、篮球鞋及秋季潮流服饰参与限时折扣。</p>
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; margin:16px 0;">
+            <b>🔥 会员特惠精选：</b>
+            <ul style="margin:8px 0 0 20px;">
+              <li>Air Max 90 系列 —— 低至 5 折</li>
+              <li>Nike Dunk Low 复古配色 —— 会员专属现货抢购</li>
+              <li>Tech Fleece 卫衣与长裤 —— 额外享 85 折</li>
+            </ul>
+          </div>
+          <p>优惠仅剩最后 48 小时，点击前往官网即可立即选购您的专属装备。</p>
+        `,
+        needLLM: false,
+        jevTip: 'Jev 决策层判定：此邮件为纯商业推广，价值度低且无需回复。已自动建议归档，避免了 1 次大模型无效调用。'
+      },
+      {
+        id: 'demo-2',
+        sender: 'OpenAI Team <newsletter@openai.com>',
+        subject: 'OpenAI Weekly: New tools and best practices for building agents',
+        snippet: 'Discover how developers are structuring agent loops, evaluation benchmarks, and multi-turn workflows with System One...',
+        unread: true,
+        starred: true,
+        date: '09:30',
+        bodyHtml: `
+          <p>Hi developers,</p>
+          <p>Welcome to this week's edition of OpenAI Developer Updates. As agentic applications become more complex, teams are restructuring how agents make decisions.</p>
+          <h4 style="margin:16px 0 8px 0; color:#0f172a;">Key Highlights:</h4>
+          <ol style="margin:8px 0 16px 20px;">
+            <li><b>Decision Layer Architecture:</b> Separating judgment from generation. Models like System One allow agents to make millisecond-level routing choices without expensive prompt chains.</li>
+            <li><b>Structured State:</b> Why JSON-schema bound contexts outperform unstructured free-text prompts by 40% in reproducibility.</li>
+            <li><b>Latency Budgets:</b> Best practices for keeping multi-agent workflows under 2 seconds end-to-end.</li>
+          </ol>
+          <p>Read the full whitepaper on the developer portal.</p>
+        `,
+        needLLM: false,
+        jevTip: 'Jev 决策层判定：高价值技术资讯，适合稍后精读。无需起草回复，未调用生成式大模型。'
+      },
+      {
+        id: 'demo-3',
+        sender: 'GitHub Notifications <notifications@github.com>',
+        subject: '[typesafe-ai/agent-runtime] Issue #142: Fix latency spike on concurrent batch evaluation',
+        snippet: '@alex commented: I tracked this down to the connection pool reuse in the Node.js client. PR is incoming...',
+        unread: true,
+        starred: false,
+        date: '09:15',
+        bodyHtml: `
+          <p><b>@alex</b> commented on issue <a href="#" style="color:#6366f1;">#142</a>:</p>
+          <blockquote style="border-left:3px solid #6366f1; padding-left:14px; color:#475569; margin:14px 0; background:#f8fafc; padding:12px;">
+            "I investigated the latency spike during 50+ concurrent batch requests. It turns out the HTTP connection keep-alive timeout was defaulting to 5s. In PR #143, I updated the connection pool reuse and P99 latency dropped from 1400ms to 280ms."
+          </blockquote>
+          <p>Please review and approve the PR before the 11:00 deploy freeze.</p>
+        `,
+        needLLM: false,
+        jevTip: 'Jev 决策层判定：核心工程 Issue 通知，置信度 86% 建议立即查看。暂无需大模型撰写长篇回复。'
+      },
+      {
+        id: 'demo-4',
+        sender: '王晨 <wangchen.personal@gmail.com>',
+        subject: '本周五晚上有空聚一下吗？好久没见了',
+        snippet: '周五下班后去三里屯那家新开的云南菜怎么样？李博也来，看看你时间合适不，回复我～',
+        unread: true,
+        starred: false,
+        date: '08:50',
+        bodyHtml: `
+          <p>老兄：</p>
+          <p>这周五下班后有空没？好久没聚了！正好李博这几天从深圳回北京出差，说无论如何得跟你喝两杯。</p>
+          <p>听说三里屯新开了一家特别地道的云南菜，汽锅鸡和包浆豆腐口碑爆棚，环境也挺小资的。我们准备定周五晚上 7:30 的包间。</p>
+          <p>看看你时间方便不？如果能来我就提前把位子锁定了，回复我一声哈！</p>
+          <p style="margin-top:16px; color:#64748b;">王晨<br>2026.09.24</p>
+        `,
+        needLLM: true,
+        llmDraft: '周五晚上有空！三里屯那家云南菜我也听说了，正好也有阵子没见李博了。7:30 我准时到，辛苦你订位，周五晚上见！',
+        jevConfidence: '94%'
+      },
+      {
+        id: 'demo-5',
+        sender: '招商银行信用卡 <alert@cmbchina.com>',
+        subject: '交易提醒：您的招商银行信用卡发生一笔境外消费 USD 20.00',
+        snippet: '您尾号 8826 的信用卡于 09月23日 16:32 发生消费：OPENAI API SUBSCRIPTION USD 20.00。如非本人操作请立即致电...',
+        unread: false,
+        starred: false,
+        date: '08:24',
+        bodyHtml: `
+          <p>尊敬的客户：</p>
+          <p>您尾号 <b>8826</b> 的招商银行个人信用卡发生了一笔境外交易：</p>
+          <table style="width:100%; border-collapse:collapse; margin:14px 0; background:#f8fafc; font-size:13.5px; border:1px solid #e2e8f0; border-radius:6px;">
+            <tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:10px;">交易时间</td><td style="padding:10px;">2026-09-23 16:32:10 (北京时间)</td></tr>
+            <tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:10px;">交易金额</td><td style="padding:10px;"><b>USD 20.00</b>（约折合人民币 142.60 元）</td></tr>
+            <tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:10px;">商户名称</td><td style="padding:10px;">OPENAI API SUBSCRIPTION</td></tr>
+            <tr><td style="padding:10px;">卡片可用额度</td><td style="padding:10px;">RMB 68,430.00</td></tr>
+          </table>
+          <p style="font-size:12px; color:#64748b;">如非您本人操作，请立即致电我行客服热线 400-820-5555 进行风险核查。</p>
+        `,
+        needLLM: false,
+        jevTip: 'Jev 决策层判定：信用卡常规交易凭证，无需人工处置，建议直接归档。'
+      },
+      {
+        id: 'demo-6',
+        sender: 'TechTalk Daily Podcast <hosts@techtalkdaily.fm>',
+        subject: '播客访谈邀请：聊聊 AI Agent Decision Layer 与新型架构',
+        snippet: '您好！我们是 TechTalk 播客团队，一直关注您在 AI 架构方面的分享，想邀请您做一期 45 分钟的线上对谈，不知下周是否有档期？...',
+        unread: true,
+        starred: true,
+        date: '昨天',
+        bodyHtml: `
+          <p>您好！</p>
+          <p>我是 TechTalk 播客的主理人林柯。我们频道专注于前沿开发者架构与 AI 系统工程，目前拥有 15 万+ 技术架构师与独立开发者听众。</p>
+          <p>近期一直在拜读您关于 <b>AI Agent 决策层设计与 System One 模型</b> 的思考，非常具有启发性！特别是提到“让 LLM 负责生成，小模型负责判断”的思路，切中了很多团队落地的成本痛点。</p>
+          <p>我们非常想邀请您参与一期 45 分钟左右的线上对谈，主题包括：</p>
+          <ul style="margin:8px 0 12px 20px;">
+            <li>为什么传统 Chain 模式在复杂工作流中容易脆弱且高昂？</li>
+            <li>Jev 这一类 System One 模型在决策分流中的实际表现；</li>
+            <li>个人与团队如何构建高性价比、低延迟的复合 Agent 架构。</li>
+          </ul>
+          <p>不知您下周三或周四是否有合适的档期？录制时间可完全配合您的节奏。期待您的回复！</p>
+          <p style="margin-top:16px; color:#64748b;">TechTalk 制作组 · 林柯 敬上</p>
+        `,
+        needLLM: true,
+        llmDraft: '林柯老师您好，非常感谢 TechTalk 的邀请！关于 AI Agent 决策层与 System One 架构的话题我也非常乐意与大家交流。我看了下日程，下周四下午 15:00~17:00 之间比较充裕。如果时间合适，我们可以先拉个微信群同步下大纲。期待连线！',
+        jevConfidence: '89%'
+      },
+      {
+        id: 'demo-7',
+        sender: 'Linear Billing <billing@linear.app>',
+        subject: 'Invoice #LIN-2026-0922 from Linear Inc. - Receipt',
+        snippet: 'Thank you for your payment. Your Standard Plan subscription has renewed successfully for 5 members...',
+        unread: false,
+        starred: false,
+        date: '昨天',
+        bodyHtml: `
+          <p>Thank you for using Linear.</p>
+          <p>Your payment for invoice <b>#LIN-2026-0922</b> has succeeded.</p>
+          <p><b>Plan:</b> Linear Standard (5 Seats)<br><b>Amount Paid:</b> $50.00 USD<br><b>Billing Period:</b> Sep 22, 2026 - Oct 22, 2026</p>
+          <p>You can download your PDF receipt from your workspace settings anytime.</p>
+        `,
+        needLLM: false,
+        jevTip: 'Jev 决策层判定：SaaS 自动续费发票，属于标准存档通知，已自动归档。'
+      },
+      {
+        id: 'demo-8',
+        sender: 'Cursor Announcements <team@cursor.sh>',
+        subject: 'Introducing Cursor 2.0: Instant Agent Background Check & Fast Edit',
+        snippet: 'We are excited to announce our major release featuring background agents, instant diff review, and enhanced terminal integration...',
+        unread: true,
+        starred: false,
+        date: '昨天',
+        bodyHtml: `
+          <p>Hello Cursor Community,</p>
+          <p>Today we're releasing Cursor 2.0 with a major redesign of our agent loop:</p>
+          <ul style="margin:8px 0 12px 20px;">
+            <li><b>Background Agent:</b> Agents now execute lints, tests, and diff checks asynchronously in background threads.</li>
+            <li><b>Semantic Decision Engine:</b> Faster intent routing before triggering code edits.</li>
+            <li><b>Instant Multi-file Diff:</b> Review 10+ modified files simultaneously with one click.</li>
+          </ul>
+          <p>Update now via Help -> Check for Updates.</p>
+        `,
+        needLLM: false,
+        jevTip: 'Jev 决策层判定：开发工具大版本更新日志，建议稍后空闲阅读。'
+      },
+      {
+        id: 'demo-9',
+        sender: 'GrowthBoost Agency <lead@seo-globalmarketing.biz>',
+        subject: 'Quick question about your website SEO and domain ranking',
+        snippet: 'Dear founder, I noticed several high-impact backlink opportunities for your site. Would you have 10 minutes to discuss? Guaranteed rankings...',
+        unread: false,
+        starred: false,
+        date: '9月22日',
+        bodyHtml: `
+          <p>Dear Founder,</p>
+          <p>I came across your domain and noticed that your search traffic is lagging behind key competitors. We specialize in high-authority backlink outreach and guaranteed top-3 Google rankings within 30 days.</p>
+          <p>Do you have 10 minutes this week for a quick consultation call?</p>
+          <p>Best regards,<br>GrowthBoost Global Marketing</p>
+        `,
+        needLLM: false,
+        jevTip: 'Jev 决策层判定：群发垃圾营销广告（置信度 95%），直接忽略，零大模型开销。'
+      },
+      {
+        id: 'demo-10',
+        sender: 'Sarah Jenkins <s.jenkins@acme-corp.internal>',
+        subject: '紧急：Q3 交付评审会议纪要与 Action Items 确认（需今天下班前确认）',
+        snippet: '团队大家好，附上今天评审会纪要。请核心负责人重点看第 3 节的风险项并于今日 18:00 前回复确认，明天将向高管汇报...',
+        unread: true,
+        starred: true,
+        date: '9月22日',
+        bodyHtml: `
+          <p>团队大家好：</p>
+          <p>附上今天下午 Q3 交付评审会的核心纪要，请核心负责人务必重点看第 3 节风险项：</p>
+          <div style="background:#fff1f2; border-left:4px solid #f43f5e; padding:12px; margin:12px 0;">
+            <b>⚠️ 重点 Action Item（今日 18:00 前）：</b>
+            <p style="margin:6px 0 0 0;">网关并发限流配置需在压测环境完成最终验证。请架构组与运维负责人回复确认就绪状态，明日上午 09:30 将统一向高管汇报。</p>
+          </div>
+          <p>请各模块负责人收到后在群内或邮件回复确认！</p>
+          <p>Sarah Jenkins<br>Acme Engineering</p>
+        `,
+        needLLM: false,
+        jevTip: 'Jev 决策层判定：极高重要度（4/4）内部紧急工作通知，建议人工立即审阅并确认。'
+      },
+      {
+        id: 'demo-11',
+        sender: '阿里云通知 <service@aliyun.com>',
+        subject: '【账单通知】您 2026 年 08 月份结算账单已生成',
+        snippet: '尊敬的客户，您 2026 年 08 月周期消费账单已出具，总计消费 328.40 元，已成功扣款。',
+        unread: false,
+        starred: false,
+        date: '9月21日',
+        bodyHtml: `<p>尊敬的阿里云客户：您的 2026 年 08 月份账单已生成，扣款金额 328.40 元，扣款渠道：企业支付宝。</p>`,
+        needLLM: false,
+        jevTip: 'Jev 决策层判定：常规云服务结算通知，直接归档。'
+      },
+      {
+        id: 'demo-12',
+        sender: 'Stripe Receipts <receipts@stripe.com>',
+        subject: 'Receipt from Supabase Inc. ($25.00 paid)',
+        snippet: 'Your payment of $25.00 to Supabase Inc. has been processed. Download invoice PDF anytime...',
+        unread: false,
+        starred: false,
+        date: '9月20日',
+        bodyHtml: `<p>Thank you for subscribing to Supabase Pro. Payment of $25.00 has been processed.</p>`,
+        needLLM: false,
+        jevTip: 'Jev 决策层判定：基础设施发票凭证，建议直接归档。'
+      },
+      {
+        id: 'demo-13',
+        sender: 'Notion Team <team@m.notion.so>',
+        subject: 'What is new in Notion: Forms, Automation, and Team Sites',
+        snippet: 'Introducing Notion Forms: collect responses directly into your Notion database with custom logic...',
+        unread: true,
+        starred: false,
+        date: '9月20日',
+        bodyHtml: `<p>Discover the latest features in Notion workspace, including native forms and conditional logic.</p>`,
+        needLLM: false,
+        jevTip: 'Jev 决策层判定：SaaS 产品上新通知，建议稍后查看。'
+      },
+      {
+        id: 'demo-14',
+        sender: 'AWS Security Hub <no-reply@amazon.com>',
+        subject: 'AWS Security Hub: Weekly Compliance Report - Zero Critical Findings',
+        snippet: 'Your AWS accounts passed 98.4% of CIS AWS Foundations Benchmark checks. No critical findings detected...',
+        unread: false,
+        starred: false,
+        date: '9月19日',
+        bodyHtml: `<p>AWS Security Hub report: All CIS benchmark controls passed. Zero critical vulnerabilities found.</p>`,
+        needLLM: false,
+        jevTip: 'Jev 决策层判定：定期安全自动化巡检报告，无需人工跟进，直接归档。'
+      },
+      {
+        id: 'demo-15',
+        sender: 'CloudFlare Updates <newsletter@cloudflare.com>',
+        subject: 'Deep Dive into Workers AI and Global Inference Latencies',
+        snippet: 'Learn how edge compute architectures reduce round-trip latencies for inference workloads across 300+ cities...',
+        unread: true,
+        starred: false,
+        date: '9月19日',
+        bodyHtml: `<p>Architecture guide: Running low-latency LLM and decision inference at the network edge.</p>`,
+        needLLM: false,
+        jevTip: 'Jev 决策层判定：边缘计算与 AI 推理架构博客，已加入稍后阅读。'
+      },
+      {
+        id: 'demo-16',
+        sender: 'Figma Notifications <notifications@figma.com>',
+        subject: '权限提醒：您被添加为「2026 Core Product Redesign」团队核心管理员',
+        snippet: 'Design Lead Alex 邀请您加入核心设计规范项目，请立即确认团队协作空间访问权限与编辑状态...',
+        unread: true,
+        starred: true,
+        date: '9月18日',
+        bodyHtml: `<p>Alex (Design Lead) has invited you to edit the design system. Please verify your workspace permissions.</p>`,
+        needLLM: false,
+        jevTip: 'Jev 决策层判定：核心项目权限授予，建议立即查看确认。'
+      },
+      {
+        id: 'demo-17',
+        sender: 'Apple Store <order-update@apple.com>',
+        subject: '您的 Apple 电子发票（订单编号：W1082918847）',
+        snippet: '感谢您选购 Apple 产品。您于 09月21日订购的配件电子增值税发票已开具，可点击查验并下载...',
+        unread: false,
+        starred: false,
+        date: '9月18日',
+        bodyHtml: `<p>尊敬的客户，您的 Apple Store 订单 W1082918847 电子增值税普通发票已出具完成。</p>`,
+        needLLM: false,
+        jevTip: 'Jev 决策层判定：电子发票交付，常规归档。'
+      }
+    ];
+
+    let currentViewingEmailId = null;
+    let currentFilter = 'all';
+    let searchQuery = '';
+    let toastTimeout = null;
+
+    // Toast notification
+    function showToast(message, duration = 2600) {
+      const toast = document.getElementById('app-toast');
+      if (!toast) return;
+      toast.textContent = message;
+      toast.style.display = 'block';
+      if (toastTimeout) clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.style.display = 'none';
+      }, duration);
+    }
+
+    // Dynamic Sidebar Counters
+    function updateSidebarCounters() {
+      const activeEmails = FULL_EMAILS_DB.filter(e => !e.archived && !e.deleted);
+      const unreadCount = activeEmails.filter(e => e.unread).length;
+      const starredCount = activeEmails.filter(e => e.starred).length;
+      const replyCount = activeEmails.filter(e => e.needLLM).length;
+      const archivedCount = FULL_EMAILS_DB.filter(e => e.archived && !e.deleted).length;
+
+      const inboxCountEl = document.getElementById('sidebar-inbox-count');
+      if (inboxCountEl) {
+        inboxCountEl.textContent = unreadCount > 0 ? unreadCount : '';
+        inboxCountEl.style.display = unreadCount > 0 ? 'inline-block' : 'none';
+      }
+
+      const unreadCountEl = document.getElementById('sidebar-unread-count');
+      if (unreadCountEl) unreadCountEl.textContent = unreadCount;
+
+      const starredCountEl = document.getElementById('sidebar-starred-count');
+      if (starredCountEl) starredCountEl.textContent = starredCount;
+
+      const replyCountEl = document.getElementById('sidebar-reply-count');
+      if (replyCountEl) replyCountEl.textContent = replyCount;
+
+      const archivedCountEl = document.getElementById('sidebar-archived-count');
+      if (archivedCountEl) archivedCountEl.textContent = archivedCount;
+
+      const visible = getFilteredEmails();
+      const infoEl = document.getElementById('toolbar-count-info');
+      if (infoEl) infoEl.textContent = `1 - ${visible.length} / ${visible.length}`;
+    }
+
+    // Filter Logic
+    function getFilteredEmails() {
+      return FULL_EMAILS_DB.filter(e => {
+        if (e.deleted) return false;
+        if (currentFilter === 'archived') {
+          return !!e.archived;
+        }
+        if (e.archived) return false;
+
+        if (currentFilter === 'starred' && !e.starred) return false;
+        if (currentFilter === 'unread' && !e.unread) return false;
+        if (currentFilter === 'need_reply' && !e.needLLM) return false;
+
+        if (searchQuery) {
+          const q = searchQuery.toLowerCase();
+          const matchSender = (e.sender || '').toLowerCase().includes(q);
+          const matchSubject = (e.subject || '').toLowerCase().includes(q);
+          const matchSnippet = (e.snippet || '').toLowerCase().includes(q);
+          if (!matchSender && !matchSubject && !matchSnippet) return false;
+        }
+        return true;
+      });
+    }
+
+    function filterMails(filterType) {
+      currentFilter = filterType;
+      document.querySelectorAll('.app-sidebar .nav-item').forEach(el => el.classList.remove('active'));
+      const activeNav = document.getElementById('nav-' + (filterType === 'all' ? 'all' : filterType.replace('_', '-')));
+      if (activeNav) activeNav.classList.add('active');
+
+      if (currentViewingEmailId) {
+        backToMailList();
+      } else {
+        renderMailTable();
+        updateSidebarCounters();
+      }
+    }
+
+    function handleSearch(val) {
+      searchQuery = val.trim();
+      renderMailTable();
+      updateSidebarCounters();
+    }
+
+    // Render Table Rows
+    function renderMailTable() {
+      const tbody = document.getElementById('mail-tbody');
+      if (!tbody) return;
+
+      const visible = getFilteredEmails();
+
+      if (visible.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="4" style="text-align: center; padding: 48px; color: #94a3b8; font-size: 14px;">
+              收件箱没有匹配的邮件
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = visible.map(m => `
+        <tr class="zA ${m.unread ? 'zE' : 'yO'}" id="${m.id}" data-legacy-thread-id="${m.id}" onclick="openEmailDetail('${m.id}')">
+          <td class="col-check" onclick="event.stopPropagation()">
+            <input type="checkbox">
+            <span class="star-icon ${m.starred ? 'starred' : ''}" onclick="toggleStar('${m.id}', event)">${m.starred ? '★' : '☆'}</span>
+          </td>
+          <td class="col-sender">
+            <span class="unread-dot"></span>
+            <span class="bA4"><span class="yP">${m.sender.split('<')[0].trim()}</span></span>
+          </td>
+          <td class="col-subject">
+            <span class="bog">${m.subject}</span>
+            <span class="y2 mail-snippet">- ${m.snippet}</span>
+          </td>
+          <td class="col-date">${m.date}</td>
+        </tr>
+      `).join('');
+    }
+
+    // Toggle Star
+    function toggleStar(emailId, event) {
+      if (event) event.stopPropagation();
+      const email = FULL_EMAILS_DB.find(e => e.id === emailId);
+      if (!email) return;
+
+      email.starred = !email.starred;
+
+      // Update row star icon
+      const row = document.getElementById(emailId);
+      if (row) {
+        const star = row.querySelector('.star-icon');
+        if (star) {
+          star.className = 'star-icon ' + (email.starred ? 'starred' : '');
+          star.textContent = email.starred ? '★' : '☆';
+        }
+      }
+
+      // Update detail star button if open
+      if (currentViewingEmailId === emailId) {
+        const starBtn = document.getElementById('btn-detail-star');
+        if (starBtn) {
+          starBtn.innerHTML = email.starred ? '★ 已标星' : '⭐ 标星';
+          starBtn.style.color = email.starred ? '#f59e0b' : '#334155';
+        }
+      }
+
+      updateSidebarCounters();
+      showToast(email.starred ? '已为邮件添加星标' : '已取消星标');
+    }
+
+    // Toggle Select All
+    function toggleSelectAll(checked) {
+      const checkboxes = document.querySelectorAll('#mail-tbody input[type="checkbox"]');
+      checkboxes.forEach(cb => cb.checked = checked);
+    }
+
+    // Mark All Visible as Read
+    function markAllVisibleAsRead() {
+      const visible = getFilteredEmails();
+      visible.forEach(m => {
+        m.unread = false;
+        const row = document.getElementById(m.id);
+        if (row) {
+          row.classList.remove('zE');
+          row.classList.add('yO');
+        }
+      });
+      updateSidebarCounters();
+      showToast('已将当前所有邮件标记为已读');
+    }
+
+    // Refresh Mail List
+    function refreshMailList() {
+      renderMailTable();
+      updateSidebarCounters();
+      showToast('收件箱已刷新');
+    }
+
+    // Open Email Detail View (Turns Unread -> Read)
+    function openEmailDetail(emailId, fromJev = false) {
+      const email = FULL_EMAILS_DB.find(e => e.id === emailId);
+      if (!email) return;
+
+      currentViewingEmailId = emailId;
+
+      // MARK AS READ: When clicked, email transitions from unread to read!
+      email.unread = false;
+
+      // Update row DOM state in table
+      const row = document.getElementById(emailId);
+      if (row) {
+        row.classList.remove('zE');
+        row.classList.add('yO');
+      }
+
+      // Update sidebar counter immediately
+      updateSidebarCounters();
+
+      // Switch View
+      document.getElementById('view-mail-list').style.display = 'none';
+      const detailView = document.getElementById('view-mail-detail');
+      detailView.style.display = 'block';
+
+      // Update Star Button in Toolbar
+      const starBtn = document.getElementById('btn-detail-star');
+      if (starBtn) {
+        starBtn.innerHTML = email.starred ? '★ 已标星' : '⭐ 标星';
+        starBtn.style.color = email.starred ? '#f59e0b' : '#334155';
+      }
+
+      // Header Area
+      const headerArea = document.getElementById('detail-header-area');
+      headerArea.innerHTML = `
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+          <span style="font-size:11px; background:#e0e7ff; color:#4338ca; border-radius:4px; padding:2px 8px; font-weight:700;">收件箱</span>
+          ${email.needLLM ? '<span style="font-size:11px; background:rgba(236,72,153,0.15); color:#ec4899; border:1px solid rgba(236,72,153,0.3); border-radius:4px; padding:2px 8px; font-weight:700;">⚡ Jev: 需要回复 · 触发大模型</span>' : '<span style="font-size:11px; background:#f1f5f9; color:#64748b; border-radius:4px; padding:2px 8px; font-weight:600;">Jev: 无需大模型</span>'}
+        </div>
+        <div class="email-subject-title">${email.subject}</div>
+
+        <div class="email-meta-bar">
+          <div class="sender-box">
+            <div class="sender-avatar" style="background:${email.needLLM ? '#ec4899' : '#6366f1'};">
+              ${email.sender.charAt(0)}
+            </div>
+            <div class="sender-info-text">
+              <div class="name">${email.sender}</div>
+              <div class="email">发送至 我 &lt;alex.founder@workspace.internal&gt;</div>
+            </div>
+          </div>
+          <div style="font-size:12px; color:#94a3b8;">${email.date}</div>
+        </div>
+      `;
+
+      // Body Content
+      document.getElementById('detail-body-area').innerHTML = email.bodyHtml;
+
+      // Jev Box inside email
+      const jevBox = document.getElementById('detail-jev-decision-box');
+      if (email.needLLM) {
+        jevBox.innerHTML = `
+          <div class="llm-agent-card">
+            <div class="llm-agent-header">
+              <div class="llm-agent-title">
+                <span>🤖</span>
+                <span>Jev 决策层判定：需要人工/模型回复 (置信度 ${email.jevConfidence}) · 已调度 LLM 生成回复草稿：</span>
+              </div>
+              <span style="font-size:11px; color:#be185d; font-family:monospace; font-weight:600;">System One -> LLM Handoff</span>
+            </div>
+            <div class="llm-draft-body">
+              ${email.llmDraft}
+            </div>
+            <div class="llm-actions">
+              <button class="btn-send-draft" onclick="showToast('✓ 已采用大模型草稿并发送回复！')">
+                ✓ 采用草稿并发送回复
+              </button>
+              <button class="btn-edit-draft" onclick="showToast('已将草稿载入编辑框！')">
+                进入编辑模式
+              </button>
+            </div>
+          </div>
+        `;
+      } else {
+        jevBox.innerHTML = `
+          <div class="jev-passive-card">
+            <span style="font-size:18px;">💡</span>
+            <div>${email.jevTip}</div>
+          </div>
+        `;
+      }
+
+      // Sync with Jev Floating Panel without re-triggering main view
+      if (!fromJev && window.jevFloatingPanel && typeof window.jevFloatingPanel.showEmailDecision === 'function') {
+        window.jevFloatingPanel.showEmailDecision(emailId, false);
+      }
+    }
+
+    // Expose globally for Floating Panel
+    window.openEmailDetail = openEmailDetail;
+
+    // Return to Mail List
+    function backToMailList() {
+      currentViewingEmailId = null;
+      document.getElementById('view-mail-detail').style.display = 'none';
+      document.getElementById('view-mail-list').style.display = 'block';
+      renderMailTable();
+      updateSidebarCounters();
+    }
+
+    // Detail Toolbar Actions
+    function archiveCurrentEmail() {
+      if (!currentViewingEmailId) return;
+      const email = FULL_EMAILS_DB.find(e => e.id === currentViewingEmailId);
+      if (email) {
+        email.archived = true;
+        showToast('已归档 1 封邮件');
+      }
+      backToMailList();
+    }
+
+    function markCurrentEmailUnread() {
+      if (!currentViewingEmailId) return;
+      const email = FULL_EMAILS_DB.find(e => e.id === currentViewingEmailId);
+      if (email) {
+        email.unread = true;
+        showToast('已标记为未读');
+      }
+      backToMailList();
+    }
+
+    function toggleCurrentEmailStar() {
+      if (!currentViewingEmailId) return;
+      toggleStar(currentViewingEmailId);
+    }
+
+    function deleteCurrentEmail() {
+      if (!currentViewingEmailId) return;
+      const email = FULL_EMAILS_DB.find(e => e.id === currentViewingEmailId);
+      if (email) {
+        email.deleted = true;
+        showToast('已将邮件移至废纸篓');
+      }
+      backToMailList();
+    }
+
+    function prevEmailDetail() {
+      const visible = getFilteredEmails();
+      const idx = visible.findIndex(e => e.id === currentViewingEmailId);
+      if (idx > 0) {
+        openEmailDetail(visible[idx - 1].id);
+      } else {
+        showToast('已经是第一封邮件了');
+      }
+    }
+
+    function nextEmailDetail() {
+      const visible = getFilteredEmails();
+      const idx = visible.findIndex(e => e.id === currentViewingEmailId);
+      if (idx !== -1 && idx < visible.length - 1) {
+        openEmailDetail(visible[idx + 1].id);
+      } else {
+        showToast('已经是最后一封邮件了');
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      renderMailTable();
+      updateSidebarCounters();
+    });
+  </script>
+  <div id="app-toast"></div>
+</body>
+</html>
